@@ -27,35 +27,91 @@ const defaultOptions: Options = {
 }
 
 function Home({ onNavigate, profile }: { onNavigate: (view: View) => void; profile: Profile | null }) {
-  const cards = [
-    { view: 'profile' as View, icon: 'P', title: 'Анкета', text: 'Заполни профиль, чтобы тебя могли найти.' },
-    { view: 'teams' as View, icon: 'T', title: 'Найти команду', text: 'Подбери стак или команду под свой ранг.' },
-    { view: 'players' as View, icon: 'A', title: 'Найти игрока', text: 'Найди дуо, трио или пятого в пати.' },
-    { view: 'help' as View, icon: '?', title: 'Помощь', text: 'FAQ, правила, заявки, инвайты и жалобы.' },
-    { view: 'settings' as View, icon: 'S', title: 'Настройки', text: 'Приватность, статус поиска, город и язык.' },
-  ]
+  const pct = profile?.completion_percent ?? 0
+  const r = 20
+  const circ = 2 * Math.PI * r
+  const dash = (pct / 100) * circ
 
   return (
     <div className="page-stack">
       <Card className="hero">
-        <p className="eyebrow">Valorant LFG Mini App</p>
-        <h1>Найди тиммейтов без хаоса в чате</h1>
-        <p>Анкета, поиск команды, поиск игрока, приглашение и катка. Все в одном Mini App.</p>
-        <div className="profile-status">
-          <span>Анкета: {profile ? `${profile.completion_percent || 0}%` : 'не создана'}</span>
-          <span>{profile?.is_visible ? 'показывается в поиске' : 'скрыта'}</span>
-          {profile && <span>{searchStatusLabels[normalizeSearchStatus(profile.search_status)]}</span>}
+        <p className="eyebrow">Valorant LFG</p>
+        <h1>Найди тиммейтов без лишнего шума</h1>
+        <p className="muted" style={{ margin: 0 }}>Анкета, команды, инвайты — всё в одном месте.</p>
+        <div className="status-badges">
+          {profile ? (
+            <>
+              <span className={`badge ${pct === 100 ? 'badge-green' : pct > 0 ? '' : 'badge-red'}`}>
+                Анкета {pct}%
+              </span>
+              <span className={`badge ${profile.is_visible ? 'badge-green' : ''}`}>
+                {profile.is_visible ? '👁 Виден в поиске' : 'Скрыт'}
+              </span>
+              <span className="badge">{searchStatusLabels[normalizeSearchStatus(profile.search_status)]}</span>
+            </>
+          ) : (
+            <span className="badge badge-red">Анкета не создана</span>
+          )}
         </div>
       </Card>
 
-      <div className="menu-grid">
-        {cards.map((card) => (
-          <button key={card.view} className="menu-card" onClick={() => onNavigate(card.view)}>
-            <span>{card.icon}</span>
-            <strong>{card.title}</strong>
-            <small>{card.text}</small>
-          </button>
-        ))}
+      <div className="home-grid">
+        <button className="menu-card mc-featured mc-teams" onClick={() => onNavigate('teams')}>
+          <span className="card-icon">🛡️</span>
+          <strong>Найти команду</strong>
+          <small>Подбери стак или команду под свой ранг и цели</small>
+          <span className="card-arrow">→</span>
+        </button>
+
+        <button className="menu-card mc-featured mc-players" onClick={() => onNavigate('players')}>
+          <span className="card-icon">🎯</span>
+          <strong>Найти игрока</strong>
+          <small>Дуо, трио или последний слот в пати</small>
+          <span className="card-arrow">→</span>
+        </button>
+
+        <button className="menu-card mc-profile" onClick={() => onNavigate('profile')}>
+          <div className="mc-profile-left">
+            <span className="mc-profile-icon">👤</span>
+            <div className="mc-profile-text">
+              <strong>Анкета</strong>
+              <small>
+                {profile
+                  ? (profile.valorant_nickname || 'Заполни профиль')
+                  : 'Создай анкету, чтобы тебя находили'}
+              </small>
+            </div>
+          </div>
+          <div className="pct-ring">
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r={r} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="4" />
+              <circle
+                cx="24" cy="24" r={r}
+                fill="none"
+                stroke="#ff4655"
+                strokeWidth="4"
+                strokeDasharray={`${dash} ${circ}`}
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="pct-ring-num">{pct}%</span>
+          </div>
+          <span className="card-arrow">→</span>
+        </button>
+
+        <button className="menu-card mc-small" onClick={() => onNavigate('settings')}>
+          <span className="card-icon">⚙️</span>
+          <strong>Настройки</strong>
+          <small>Приватность и статус поиска</small>
+          <span className="card-arrow">→</span>
+        </button>
+
+        <button className="menu-card mc-small" onClick={() => onNavigate('help')}>
+          <span className="card-icon">📖</span>
+          <strong>Помощь</strong>
+          <small>FAQ, правила и жалобы</small>
+          <span className="card-arrow">→</span>
+        </button>
       </div>
     </div>
   )
