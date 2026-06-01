@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: valorant_lfg
+      POSTGRES_USER: valorant
+      POSTGRES_PASSWORD: valorant
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./apps/backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://valorant:valorant@postgres:5432/valorant_lfg
+      AUTH_DISABLED: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - ./apps/web:/app
+      - web_node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: http://localhost:8000
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  bot:
+    build: ./apps/bot
+    profiles:
+      - bot
+    env_file: .env
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  web_node_modules:
